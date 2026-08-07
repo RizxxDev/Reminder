@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Jadwal Tugas</string>
+    <string name="small_widget_name">Taskify (Kecil)</string>
+    <string name="small_widget_desc">Menampilkan tugas terdekat (2x2)</string>
+    <string name="medium_widget_name">Taskify (Sedang)</string>
+    <string name="medium_widget_desc">Menampilkan daftar jadwal tugas (4x2)</string>
+    <string name="large_widget_name">Taskify (Besar)</string>
+    <string name="large_widget_desc">Menampilkan daftar tugas lengkap (4x4)</string>
+</resources>
