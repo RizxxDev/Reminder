@@ -18,6 +18,7 @@ class DailyTaskReminderWorker(
     override suspend fun doWork(): Result {
         val settingsRepo = SettingsRepository(applicationContext)
         val isEnabled = settingsRepo.h2NotificationEnabled.firstOrNull() ?: true
+        val soundUri = settingsRepo.notificationSoundUri.firstOrNull()
 
         if (!isEnabled) {
             return Result.success()
@@ -67,7 +68,8 @@ class DailyTaskReminderWorker(
                 1001, // arbitrary fixed ID for summary
                 "Pengingat H-2",
                 fallbackMessage,
-                inboxStyle
+                inboxStyle,
+                soundUri
             )
         } else {
             NotificationHelper.cancelBundledNotification(applicationContext, 1001)

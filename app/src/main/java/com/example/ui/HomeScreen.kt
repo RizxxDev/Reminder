@@ -32,6 +32,12 @@ import com.patrykandpatrick.vico.core.entry.entryModelOf
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 
+import android.media.RingtoneManager
+import android.net.Uri
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
@@ -39,9 +45,19 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
     val allTasksIncludingCompleted by viewModel.allTasksIncludingCompleted.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val h2NotificationEnabled by viewModel.h2NotificationEnabled.collectAsState()
+    val notificationSoundUri by viewModel.notificationSoundUri.collectAsState()
     
     var showAddDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
+
+    val ringtoneLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            viewModel.setNotificationSoundUri(uri?.toString())
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -137,6 +153,30 @@ fun HomeScreen(viewModel: TaskViewModel = viewModel()) {
                                 checked = h2NotificationEnabled,
                                 onCheckedChange = { viewModel.setH2NotificationEnabled(it) }
                             )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text("Suara Notifikasi")
+                                val currentSoundName = if (notificationSoundUri == null) "Default" else "Kustom"
+                                Text(currentSoundName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            TextButton(onClick = {
+                                val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                                    putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                                    val currentUri = notificationSoundUri?.let { Uri.parse(it) }
+                                    putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, currentUri)
+                                }
+                                ringtoneLauncher.launch(intent)
+                            }) {
+                                Text("Pilih")
+                            }
                         }
                         
                         Divider(modifier = Modifier.padding(vertical = 8.dp))

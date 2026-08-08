@@ -18,26 +18,40 @@ import java.util.concurrent.TimeUnit
 object NotificationHelper {
     private const val CHANNEL_ID = "task_reminder_channel"
 
-    fun showNotification(context: Context, notificationId: Int, title: String, message: String) {
+    fun showNotification(context: Context, notificationId: Int, title: String, message: String, soundUri: String? = null) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        val channelId = if (soundUri == null) "task_reminder_channel_default" else "task_reminder_channel_${soundUri.hashCode()}"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
+                channelId,
                 "Task Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Channel for task reminder notifications"
+                if (soundUri != null) {
+                    val uri = android.net.Uri.parse(soundUri)
+                    val audioAttributes = android.media.AudioAttributes.Builder()
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                        .build()
+                    setSound(uri, audioAttributes)
+                }
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+
+        if (soundUri != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setSound(android.net.Uri.parse(soundUri))
+        }
 
         notificationManager.notify(notificationId, builder.build())
     }
@@ -47,23 +61,34 @@ object NotificationHelper {
         notificationId: Int,
         title: String,
         fallbackMessage: String,
-        inboxStyle: NotificationCompat.InboxStyle
+        inboxStyle: NotificationCompat.InboxStyle,
+        soundUri: String? = null
     ) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        val channelId = if (soundUri == null) "task_reminder_channel_default" else "task_reminder_channel_${soundUri.hashCode()}"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                CHANNEL_ID,
+                channelId,
                 "Task Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Channel for task reminder notifications"
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+                if (soundUri != null) {
+                    val uri = android.net.Uri.parse(soundUri)
+                    val audioAttributes = android.media.AudioAttributes.Builder()
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                        .build()
+                    setSound(uri, audioAttributes)
+                }
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentTitle(title)
             .setContentText(fallbackMessage)
@@ -72,6 +97,10 @@ object NotificationHelper {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
+            
+        if (soundUri != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setSound(android.net.Uri.parse(soundUri))
+        }
 
         notificationManager.notify(notificationId, builder.build())
     }

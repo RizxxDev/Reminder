@@ -44,6 +44,7 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
     }.cachedIn(viewModelScope)
     
     val h2NotificationEnabled: StateFlow<Boolean>
+    val notificationSoundUri: StateFlow<String?>
 
     init {
         val taskDao = AppDatabase.getDatabase(application).taskDao()
@@ -54,6 +55,11 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = true
+        )
+        notificationSoundUri = settingsRepository.notificationSoundUri.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
         )
 
         allTasksIncludingCompleted = repository.allTasksIncludingCompleted.stateIn(
@@ -71,6 +77,12 @@ class TaskViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             settingsRepository.setH2NotificationEnabled(enabled)
             NotificationHelper.refreshBundledNotification(getApplication())
+        }
+    }
+
+    fun setNotificationSoundUri(uri: String?) {
+        viewModelScope.launch {
+            settingsRepository.setNotificationSoundUri(uri)
         }
     }
 
