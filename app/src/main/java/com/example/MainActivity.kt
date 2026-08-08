@@ -10,6 +10,7 @@ import com.example.ui.HomeScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.util.NotificationHelper
 
+@android.annotation.SuppressLint("InvalidFragmentVersionForActivityResult")
 class MainActivity : ComponentActivity() {
   private val requestPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestPermission()
